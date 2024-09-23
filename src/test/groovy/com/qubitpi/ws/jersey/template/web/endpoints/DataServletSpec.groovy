@@ -15,38 +15,75 @@
  */
 package com.qubitpi.ws.jersey.template.web.endpoints
 
-import com.qubitpi.ws.jersey.template.JettyServerFactory
-import com.qubitpi.ws.jersey.template.application.ResourceConfig
 
-import org.eclipse.jetty.server.Server
+import org.neo4j.driver.Value
+import org.neo4j.driver.internal.types.InternalTypeSystem
 
-import io.restassured.RestAssured
-import io.restassured.builder.RequestSpecBuilder
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DataServletSpec extends Specification {
 
-    static final int PORT = 8080
-
-    def setupSpec() {
-        RestAssured.baseURI = "http://localhost"
-        RestAssured.port = PORT
-        RestAssured.basePath = "/v1"
-    }
-
-    def "Healthchecking endpoints returns 200"() {
-        setup:
-        Server server = JettyServerFactory.newInstance(PORT, "/v1/*", new ResourceConfig())
-        server.start()
+    @SuppressWarnings('GroovyAccessibility')
+    def "Embedded Neo4J Value objects are recursively expanded to become plain JSONable map"() {
+        given: "a 2-level nested result object"
+        Value value = Mock(Value) {
+            type() >> InternalTypeSystem.TYPE_SYSTEM.NODE()
+            keys() >> ["term", "definition"]
+            get("term") >> Mock(Value) {
+                type() >> InternalTypeSystem.TYPE_SYSTEM.NODE()
+                keys() >> ["name", "language"]
+                get("name") >> Mock(Value) {
+                    type() >> InternalTypeSystem.TYPE_SYSTEM.STRING()
+                    asString() >> "Hallo"
+                }
+                get("language") >> Mock(Value) {
+                    type() >> InternalTypeSystem.TYPE_SYSTEM.STRING()
+                    asString() >> "German"
+                }
+            }
+            get("definition") >> Mock(Value) {
+                type() >> InternalTypeSystem.TYPE_SYSTEM.NODE()
+                keys() >> ["name"]
+                get("name") >> Mock(Value) {
+                    type() >> InternalTypeSystem.TYPE_SYSTEM.STRING()
+                    asString() >> "Hello"
+                }
+            }
+        }
 
         expect:
-        RestAssured.given()
-                .when()
-                .get("/data/healthcheck")
-                .then()
-                .statusCode(200)
+        DataServlet.expand(value) == [
+                term: [
+                    name: "Hallo",
+                    language: "German"
+                ],
+                definition: [
+                    name: "Hello"
+                ]
+        ]
+    }
 
-        cleanup:
-        server.stop()
+    @Unroll
+    @SuppressWarnings('GroovyAccessibility')
+    def "Value of type '#valueType' #isOrNot terminal type"() {
+        given:
+        Value value = Mock(Value) {
+            type() >> valueType
+        }
+
+        expect:
+        DataServlet.isTerminalValue(value) == isTerminalType
+
+        where:
+        valueType                                || isTerminalType
+        InternalTypeSystem.TYPE_SYSTEM.INTEGER() || true
+        InternalTypeSystem.TYPE_SYSTEM.BOOLEAN() || true
+        InternalTypeSystem.TYPE_SYSTEM.STRING()  || true
+        InternalTypeSystem.TYPE_SYSTEM.LIST()    || false
+        InternalTypeSystem.TYPE_SYSTEM.MAP()     || false
+        InternalTypeSystem.TYPE_SYSTEM.NODE()    || false
+
+        isOrNot = isTerminalType ? "is" : "is not"
     }
 }

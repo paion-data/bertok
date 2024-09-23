@@ -45,10 +45,40 @@ import net.jcip.annotations.ThreadSafe;
 public interface ApplicationConfig extends Config {
 
     /**
-     * Example config definition.
+     * The URL to a Neo4j instance.
      *
-     * @return a config value as string.
+     * @return a string
      */
-    @Key("EXAMPLE_CONFIG_KEY_NAME")
-    String exampleConfigKey();
+    @Key("NEO4J_URI")
+    String neo4jUrl();
+
+    /**
+     * The "principal" of the basic authentication scheme, using a username and a password.
+     * <p>
+     * It is used to create the {@link org.neo4j.driver.AuthTokens#basic(String, String) token} representing the
+     * principal and is the "username" part.
+     *
+     * @return a string
+     */
+    @Key("NEO4J_USERNAME")
+    String neo4jUsername();
+
+    /**
+     * The "credential" of the basic authentication scheme, using a username and a password.
+     * <p>
+     * It is used to create the {@link org.neo4j.driver.AuthTokens#basic(String, String) token} representing the
+     * principal and is the "password" part.
+     *
+     * @return a string
+     */
+    @Key("NEO4J_PASSWORD")
+    String neo4jPassword();
+
+    /**
+     * The name of the Neo4J database that's backing this webservice.
+     *
+     * @return a string
+     */
+    @Key("NEO4J_DATABASE")
+    String neo4jDatabase();
 }
