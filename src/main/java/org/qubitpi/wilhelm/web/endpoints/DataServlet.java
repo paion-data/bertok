@@ -127,6 +127,21 @@ public class DataServlet {
                 LANGUAGES.get(language), (Integer.parseInt(page) - 1) * Integer.parseInt(perPage), perPage
         );
 
+        return Response
+                .status(Response.Status.OK)
+                .entity(executeNativeQuery(query))
+                .build();
+    }
+
+    /**
+     * Runs a cypher query against Neo4J database and return the query result as a JSON-serializable object.
+     *
+     * @param query  A standard cypher query string
+     *
+     * @return query result
+     */
+    @NotNull
+    private Object executeNativeQuery(@NotNull final String query) {
         try (Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USERNAME, NEO4J_PASSWORD))) {
             driver.verifyConnectivity();
 
@@ -134,25 +149,20 @@ public class DataServlet {
                     .withConfig(QueryConfig.builder().withDatabase(NEO4J_DATABASE).build())
                     .execute();
 
-            return Response
-                    .status(Response.Status.OK)
-                    .entity(
-                            result
-                                    .records()
+            return result
+                    .records()
+                    .stream()
+                    .map(
+                            record -> record.keys()
                                     .stream()
-                                    .map(
-                                            record -> record.keys()
-                                                    .stream()
-                                                    .map(key -> new AbstractMap.SimpleImmutableEntry<>(
-                                                            key,
-                                                            expand(record.get(key))
-                                                    ))
-                                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                                    .map(key -> new AbstractMap.SimpleImmutableEntry<>(
+                                            key,
+                                            expand(record.get(key))
+                                    ))
+                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
 
-                                    )
-                                    .collect(Collectors.toList())
                     )
-                    .build();
+                    .collect(Collectors.toList());
         }
     }
 
