@@ -15,8 +15,6 @@
  */
 package org.qubitpi.wilhelm.web.endpoints;
 
-import org.qubitpi.wilhelm.config.ApplicationConfig;
-
 import org.aeonbits.owner.ConfigFactory;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
@@ -25,6 +23,7 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.QueryConfig;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.types.InternalTypeSystem;
+import org.qubitpi.wilhelm.config.ApplicationConfig;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -33,6 +32,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import net.jcip.annotations.Immutable;
@@ -62,10 +62,10 @@ public class DataServlet {
     private static final String NEO4J_DATABASE = APPLICATION_CONFIG.neo4jDatabase();
 
     private static final Map<String, String> LANGUAGES = Stream.of(
-            new AbstractMap.SimpleImmutableEntry<>("german", "German"),
-            new AbstractMap.SimpleImmutableEntry<>("ancientGreek", "Ancient Greek"),
-            new AbstractMap.SimpleImmutableEntry<>("latin", "Latin")
-    )
+                    new AbstractMap.SimpleImmutableEntry<>("german", "German"),
+                    new AbstractMap.SimpleImmutableEntry<>("ancientGreek", "Ancient Greek"),
+                    new AbstractMap.SimpleImmutableEntry<>("latin", "Latin")
+            )
             .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 
 
@@ -91,17 +91,23 @@ public class DataServlet {
     }
 
     /**
-     * Get all vocabularies of a language.
+     * Get paginated vocabularies of a language.
      *
      * @param language  The language. Must be one of "german", "ancientGreek", or "latin". Otherwise a 404 response is
      * returned
+     * @param perPage  Requested number of words to be displayed on each page of results
+     * @param page  Requested page of results desired
      *
-     * @return the Neo4J query results in JSON format
+     * @return the paginated Neo4J query results in JSON format
      */
     @GET
     @Path("/languages/{language}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getVocabularyByLanguage(@NotNull @PathParam("language") final String language) {
+    public Response getVocabularyByLanguagePaged(
+            @NotNull @PathParam("language") final String language,
+            @NotNull @QueryParam("perPage") final String perPage,
+            @NotNull @QueryParam("page") final String page
+    ) {
         if (!LANGUAGES.containsKey(Objects.requireNonNull(language, "language"))) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
@@ -116,8 +122,9 @@ public class DataServlet {
 
         final String query = String.format(
                 "MATCH (t:Term WHERE t.language = '%s')-[r]->(d:Definition) " +
-                        "RETURN t.name AS term, d.name AS definition",
-                LANGUAGES.get(language)
+                "RETURN t.name AS term, d.name AS definition " +
+                "SKIP %s LIMIT %s",
+                LANGUAGES.get(language), (Integer.parseInt(page) - 1) * Integer.parseInt(perPage), perPage
         );
 
         try (Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USERNAME, NEO4J_PASSWORD))) {

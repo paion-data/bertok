@@ -88,12 +88,13 @@ class DataServletITSpec extends Specification {
                 .statusCode(200)
     }
 
-    def "Get vocabulary by language"() {
+    def "Get vocabulary by language and retrieve the very first word"() {
         expect:
         RestAssured
                 .given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
+                .queryParams([perPage: "10", page: "1"])
                 .when()
                 .get("/data/languages/german")
                 .then()

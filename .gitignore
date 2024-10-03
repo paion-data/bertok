@@ -1,5 +1,6 @@
 *.iml
 .idea/
 target/
+logback/
 .DS_Store
 application.properties
