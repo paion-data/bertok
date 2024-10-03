@@ -39,6 +39,9 @@ import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -113,7 +116,8 @@ public class DataServlet {
                     .status(Response.Status.BAD_REQUEST)
                     .entity(
                             String.format(
-                                    "'language' path parameter has to be one of %s",
+                                    "'%s' is not a recognized language. Acceptable ones are %s",
+                                    language,
                                     String.join(", ", LANGUAGES.keySet())
                             )
                     )
@@ -127,42 +131,104 @@ public class DataServlet {
                 LANGUAGES.get(language), (Integer.parseInt(page) - 1) * Integer.parseInt(perPage), perPage
         );
 
+        final EagerResult result = executeNativeQuery(query);
+
+        final Object responseBody = result.records()
+                .stream()
+                .map(
+                        record -> record.keys()
+                                .stream()
+                                .map(key -> new AbstractMap.SimpleImmutableEntry<>(key, expand(record.get(key))))
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                )
+                .collect(Collectors.toList());
+
         return Response
                 .status(Response.Status.OK)
-                .entity(executeNativeQuery(query))
+                .entity(responseBody)
                 .build();
     }
 
     /**
-     * Runs a cypher query against Neo4J database and return the query result as a JSON-serializable object.
+     * Recursively find all related terms and definitions of a word.
+     *
+     * @param word  The word to expand
+     *
+     * @return a JSON representation of the expanded sub-graph
+     */
+    @GET
+    @Path("/expand/{word}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("MultipleStringLiterals")
+    public Response expand(@NotNull @PathParam("word") final String word) {
+        final String query = String.format(
+                """
+                        MATCH (term:Term{name:'%s'})
+                        CALL apoc.path.expand(term, "RELATED|DEFINITION", null, 1, -1)
+                        YIELD path
+                        RETURN path, length(path) AS hops
+                        ORDER BY hops;
+                """,
+                word
+        );
+
+        final EagerResult result = executeNativeQuery(query);
+
+        final Map<String, List<Map<String, Object>>> responseBody = Map.of(
+                "nodes", new ArrayList<>(),
+                "links", new ArrayList<>()
+        );
+
+        result.records().stream()
+                .map(record -> record.get("path").asPath())
+                .forEach(path -> {
+                    path.nodes().forEach(node -> responseBody.get("nodes").add(
+                            Stream.of(
+                                    node.asMap(),
+                                    Collections.singletonMap("id", node.elementId())
+                            )
+                                    .flatMap(map -> map.entrySet().stream())
+                                    .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue))
+                    ));
+                    path.relationships().forEach(relationship -> responseBody.get("links").add(
+                            Stream.of(
+                                    relationship.asMap(),
+                                    Collections.singletonMap(
+                                            "sourceNodeId",
+                                            relationship.startNodeElementId()
+                                    ),
+                                    Collections.singletonMap(
+                                            "targetNodeId",
+                                            relationship.endNodeElementId()
+                                    )
+                            )
+                                    .flatMap(map -> map.entrySet().stream())
+                                    .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue))
+                    ));
+                });
+
+
+        return Response
+                .status(Response.Status.OK)
+                .entity(responseBody)
+                .build();
+    }
+
+    /**
+     * Runs a cypher query against Neo4J database and return the query result unmodified.
      *
      * @param query  A standard cypher query string
      *
-     * @return query result
+     * @return query's native result
      */
     @NotNull
-    private Object executeNativeQuery(@NotNull final String query) {
+    private EagerResult executeNativeQuery(@NotNull final String query) {
         try (Driver driver = GraphDatabase.driver(NEO4J_URL, AuthTokens.basic(NEO4J_USERNAME, NEO4J_PASSWORD))) {
             driver.verifyConnectivity();
 
-            final EagerResult result = driver.executableQuery(query)
+            return driver.executableQuery(query)
                     .withConfig(QueryConfig.builder().withDatabase(NEO4J_DATABASE).build())
                     .execute();
-
-            return result
-                    .records()
-                    .stream()
-                    .map(
-                            record -> record.keys()
-                                    .stream()
-                                    .map(key -> new AbstractMap.SimpleImmutableEntry<>(
-                                            key,
-                                            expand(record.get(key))
-                                    ))
-                                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-
-                    )
-                    .collect(Collectors.toList());
         }
     }
 

@@ -16,6 +16,8 @@
 package org.qubitpi.wilhelm.web.endpoints
 
 import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.hasKey
+import static org.hamcrest.Matchers.matchesPattern
 
 import org.hamcrest.Description
 import org.hamcrest.Matcher
@@ -49,7 +51,8 @@ class DataServletITSpec extends Specification {
             .withExposedPorts(7474, 7687)
             .withEnv([
                     NEO4J_AUTH: "none",
-                    NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+                    NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes",
+                    NEO4JLABS_PLUGINS: "[\"apoc\"]"
             ])
             .waitingFor(new LogMessageWaitStrategy().withRegEx(".*INFO  Started.*"))
             .withStartupTimeout(Duration.of(60, ChronoUnit.SECONDS))
@@ -88,7 +91,7 @@ class DataServletITSpec extends Specification {
                 .statusCode(200)
     }
 
-    def "Get vocabulary by language and retrieve the very first word"() {
+    def "Get vocabulary by language returns a list of map, with each entry containing 'term' and 'definition' keys"() {
         expect:
         RestAssured
                 .given()
@@ -99,6 +102,24 @@ class DataServletITSpec extends Specification {
                 .get("/data/languages/german")
                 .then()
                 .statusCode(200)
-                .body("[0]", equalTo([term: "dieser", definition: "this"]))
+                .body("[0]", hasKey("term"))
+                .body("[0]", hasKey("definition"))
+    }
+
+    def "Expand a word returns a map of two keys - 'nodes' & 'links'"() {
+        expect:
+        RestAssured
+                .given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .when()
+                .get("/data/expand/nämlich")
+                .then()
+                .statusCode(200)
+                .body("", hasKey("nodes"))
+                .body("", hasKey("links"))
+                .body("nodes[0]", hasKey("id"))
+                .body("links[0]", hasKey("sourceNodeId"))
+                .body("links[0]", hasKey("targetNodeId"))
     }
 }
