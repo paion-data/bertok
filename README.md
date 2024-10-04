@@ -8,11 +8,6 @@ Aristotle
 
 Aristotle is a [JSR 370] [JAX-RS] webservice of CRUD operations against a graph database. It supports Neo4J now.
 
-```bash
-mvn clean verify
-mvn clean package
-```
-
 Configuration
 -------------
 
@@ -21,8 +16,44 @@ Configuration
 - `NEO4J_PASSWORD`
 - `NEO4J_DATABASE`
 
+Test
+----
+
+```console
+mvn clean verify
+```
+
 Deployment
 ----------
+
+```bash
+mvn clean package
+```
+
+### Gateway Registration
+
+```bash
+export GATEWAY_PUBLIC_IP=52.53.186.26
+
+curl -v -i -s -k -X POST https://api.paion-data.dev:8444/services \
+  --data name=wilhelm-ws-languages \
+  --data url="http://${GATEWAY_PUBLIC_IP}:8080/v1/data/languages"
+curl -i -k -X POST https://api.paion-data.dev:8444/services/wilhelm-ws-languages/routes \
+  --data "paths[]=/wilhelm/languages" \
+  --data name=wilhelm-ws-languages
+
+curl -v -i -s -k -X POST https://api.paion-data.dev:8444/services \
+  --data name=wilhelm-ws-expand \
+  --data url="http://${GATEWAY_PUBLIC_IP}:8080/v1/data/expand"
+curl -i -k -X POST https://api.paion-data.dev:8444/services/wilhelm-ws-expand/routes \
+  --data "paths[]=/wilhelm/expand" \
+  --data name=wilhelm-ws-expand
+```
+
+#### Example requests:
+
+- https://api.paion-data.dev/wilhelm/languages/german?perPage=100&page=1
+- https://api.paion-data.dev/wilhelm/expand/nämlich
 
 License
 -------
