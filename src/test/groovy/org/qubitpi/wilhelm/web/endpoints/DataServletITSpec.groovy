@@ -16,8 +16,10 @@
 package org.qubitpi.wilhelm.web.endpoints
 
 import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.greaterThan
 import static org.hamcrest.Matchers.hasKey
 import static org.hamcrest.Matchers.matchesPattern
+import static org.hamcrest.Matchers.matchesRegex
 
 import org.hamcrest.Description
 import org.hamcrest.Matcher
@@ -34,9 +36,11 @@ import org.testcontainers.spock.Testcontainers
 import groovy.json.JsonBuilder
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
+import io.restassured.specification.Argument
 import jakarta.ws.rs.core.MediaType
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.time.Duration
 import java.time.temporal.ChronoUnit
@@ -91,6 +95,19 @@ class DataServletITSpec extends Specification {
                 .statusCode(200)
     }
 
+    def "Get count by language returns a list of one map entry, whose key is 'count' and value is the total"() {
+        expect:
+        RestAssured
+                .given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .when()
+                .get("/data/languages/german/count")
+                .then()
+                .statusCode(200)
+                .body("[0].count", greaterThan(1))
+    }
+
     def "Get vocabulary by language returns a list of map, with each entry containing 'term' and 'definition' keys"() {
         expect:
         RestAssured
@@ -104,6 +121,25 @@ class DataServletITSpec extends Specification {
                 .statusCode(200)
                 .body("[0]", hasKey("term"))
                 .body("[0]", hasKey("definition"))
+    }
+
+    @Unroll
+    def "When #endpoint receives a invalid language, a 404 error response is sent with details"() {
+        expect:
+        RestAssured
+                .given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .when()
+                .get("/data/languages/myInvalidLanguage")
+                .then()
+                .statusCode(400)
+                .body(equalTo("'myInvalidLanguage' is not a recognized language. Acceptable ones are german, ancientGreek, latin"))
+
+        where:
+        _ | endpoint
+        _ | "/data/languages/myInvalidLanguage"
+        _ | "/data/languages/myInvalidLanguage/count"
     }
 
     def "Expand a word returns a map of two keys - 'nodes' & 'links'"() {

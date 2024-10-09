@@ -18,6 +18,7 @@ package org.qubitpi.wilhelm.application;
 import org.qubitpi.wilhelm.web.filters.CorsFilter;
 
 import org.glassfish.hk2.utilities.Binder;
+import org.qubitpi.wilhelm.web.filters.LanguageCheckFilter;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.ApplicationPath;
@@ -42,6 +43,7 @@ public class ResourceConfig extends org.glassfish.jersey.server.ResourceConfig {
         packages(ENDPOINT_PACKAGE);
 
         register(CorsFilter.class);
+        register(LanguageCheckFilter.class);
 
         final Binder binder = new BinderFactory().buildBinder();
         register(binder);

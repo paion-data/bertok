@@ -23,6 +23,8 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.QueryConfig;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.types.InternalTypeSystem;
+import org.qubitpi.wilhelm.Language;
+import org.qubitpi.wilhelm.LanguageCheck;
 import org.qubitpi.wilhelm.config.ApplicationConfig;
 
 import jakarta.inject.Inject;
@@ -43,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -63,13 +64,6 @@ public class DataServlet {
     private static final String NEO4J_USERNAME = APPLICATION_CONFIG.neo4jUsername();
     private static final String NEO4J_PASSWORD = APPLICATION_CONFIG.neo4jPassword();
     private static final String NEO4J_DATABASE = APPLICATION_CONFIG.neo4jDatabase();
-
-    private static final Map<String, String> LANGUAGES = Stream.of(
-                    new AbstractMap.SimpleImmutableEntry<>("german", "German"),
-                    new AbstractMap.SimpleImmutableEntry<>("ancientGreek", "Ancient Greek"),
-                    new AbstractMap.SimpleImmutableEntry<>("latin", "Latin")
-            )
-            .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 
 
     /**
@@ -94,16 +88,42 @@ public class DataServlet {
     }
 
     /**
+     * Returns the total number of terms of a specified langauges.
+     *
+     * @param language  The language. Must be one of the valid return value of {@link Language#getPathName()}; otherwise
+     * a 400 response is returned
+     *
+     * @return a list of one map entry, whose key is 'count' and value is the total
+     */
+    @GET
+    @LanguageCheck
+    @Path("/languages/{language}/count")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getCountByLanguage(@NotNull @PathParam("language") final String language) {
+        final Language requestedLanguage = Language.ofClientValue(language);
+
+        final String query = String.format(
+                "MATCH (term:Term {language: '%s'}) RETURN count(*) as count", requestedLanguage.getDatabaseName()
+        );
+
+        return Response
+                .status(Response.Status.OK)
+                .entity(executeNonPathQuery(query))
+                .build();
+    }
+
+    /**
      * Get paginated vocabularies of a language.
      *
-     * @param language  The language. Must be one of "german", "ancientGreek", or "latin". Otherwise a 404 response is
-     * returned
+     * @param language  The language. Must be one of the valid return value of {@link Language#getPathName()}; otherwise
+     * a 400 response is returned
      * @param perPage  Requested number of words to be displayed on each page of results
      * @param page  Requested page of results desired
      *
      * @return the paginated Neo4J query results in JSON format
      */
     @GET
+    @LanguageCheck
     @Path("/languages/{language}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getVocabularyByLanguagePaged(
@@ -111,41 +131,18 @@ public class DataServlet {
             @NotNull @QueryParam("perPage") final String perPage,
             @NotNull @QueryParam("page") final String page
     ) {
-        if (!LANGUAGES.containsKey(Objects.requireNonNull(language, "language"))) {
-            return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity(
-                            String.format(
-                                    "'%s' is not a recognized language. Acceptable ones are %s",
-                                    language,
-                                    String.join(", ", LANGUAGES.keySet())
-                            )
-                    )
-                    .build();
-        }
+        final Language requestedLanguage = Language.ofClientValue(language);
 
         final String query = String.format(
                 "MATCH (t:Term WHERE t.language = '%s')-[r]->(d:Definition) " +
                 "RETURN t.name AS term, d.name AS definition " +
                 "SKIP %s LIMIT %s",
-                LANGUAGES.get(language), (Integer.parseInt(page) - 1) * Integer.parseInt(perPage), perPage
+                requestedLanguage.getDatabaseName(), (Integer.parseInt(page) - 1) * Integer.parseInt(perPage), perPage
         );
-
-        final EagerResult result = executeNativeQuery(query);
-
-        final Object responseBody = result.records()
-                .stream()
-                .map(
-                        record -> record.keys()
-                                .stream()
-                                .map(key -> new AbstractMap.SimpleImmutableEntry<>(key, expand(record.get(key))))
-                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                )
-                .collect(Collectors.toList());
 
         return Response
                 .status(Response.Status.OK)
-                .entity(responseBody)
+                .entity(executeNonPathQuery(query))
                 .build();
     }
 
@@ -212,6 +209,28 @@ public class DataServlet {
                 .status(Response.Status.OK)
                 .entity(responseBody)
                 .build();
+    }
+
+    /**
+     * Runs a cypher query against Neo4J database and return result as a JSON-serializable.
+     * <p>
+     * Use this method only if the {@code query} does not involve path, because this method cannot handle query result
+     * that has path object nested in it
+     *
+     * @param query  A standard cypher query string
+     *
+     * @return query's native result
+     */
+    private Object executeNonPathQuery(@NotNull final String query) {
+        return executeNativeQuery(query).records()
+                .stream()
+                .map(
+                        record -> record.keys()
+                                .stream()
+                                .map(key -> new AbstractMap.SimpleImmutableEntry<>(key, expand(record.get(key))))
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                )
+                .collect(Collectors.toList());
     }
 
     /**

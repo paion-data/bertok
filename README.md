@@ -50,6 +50,8 @@ curl -i -k -X POST https://api.paion-data.dev:8444/services/wilhelm-ws-expand/ro
   --data name=wilhelm-ws-expand
 ```
 
+We should see `HTTP/1.1 201 Created` as signs of success.
+
 #### Example requests:
 
 - https://api.paion-data.dev/wilhelm/languages/german?perPage=100&page=1
