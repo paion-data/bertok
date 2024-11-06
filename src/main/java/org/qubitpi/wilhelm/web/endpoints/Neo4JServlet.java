@@ -138,6 +138,93 @@ public class Neo4JServlet {
     }
 
     /**
+     * Search all nodes whose label contains a specified keyword.
+     *
+     * @param keyword  The provided keyword
+     *
+     * @return all nodes whose "name" attribute contains the search keyword
+     */
+    @GET
+    @Path("/search/{keyword}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("MultipleStringLiterals")
+    public Response search(@NotNull @PathParam("keyword") final String keyword) {
+        final String query = String.format("MATCH (node) WHERE node.name =~ '.*%s.*' RETURN node", keyword);
+
+        return Response
+                .status(Response.Status.OK)
+                .entity(executeNonPathQuery(query))
+                .build();
+    }
+
+    /**
+     * Runs a cypher query against Neo4J database and return result as a JSON-serializable.
+     * <p>
+     * Use this method only if the {@code query} does not involve path, because this method cannot handle query result
+     * that has path object nested in it
+     *
+     * @param query  A standard cypher query string
+     *
+     * @return query's native result
+     */
+    private Object executeNonPathQuery(@NotNull final String query) {
+        return executeNativeQuery(query).records()
+                .stream()
+                .map(
+                        record -> record.keys()
+                                .stream()
+                                .map(key -> new AbstractMap.SimpleImmutableEntry<>(key, expand(record.get(key))))
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+                )
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Transforms a Neo4J {@link Value} object into a Jackson-serializable Java object.
+     *
+     * See https://neo4j.com/docs/java-manual/current/data-types/ for more details
+     *
+     * @param value  An object graph. Cannot be {@code null}
+     *
+     * @return a {@link Map} representation of the object graph and can be Jackson-serialized
+     */
+    private static Object expand(@NotNull final Value value) {
+        if (isTerminalValue(value)) {
+            if (value.type().equals(InternalTypeSystem.TYPE_SYSTEM.INTEGER())) {
+                return value.asInt();
+            } else if (value.type().equals(InternalTypeSystem.TYPE_SYSTEM.BOOLEAN())) {
+                return value.asBoolean();
+            } else {
+                return value.asString();
+            }
+        }
+
+        return StreamSupport.stream(value.keys().spliterator(), false)
+                .map(key -> new AbstractMap.SimpleImmutableEntry<>(key, expand(value.get(key))))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * Returns whether or not a {@link Value} object is the "leaf" node in Jackson serialization.
+     * <p>
+     * A "leaf" node is defined to be one of
+     * <ul>
+     *     <li> integer
+     *     <li> string
+     *     <li> boolean
+     * </ul>
+     *
+     * @param value  An object graph. Cannot be {@code null}
+     *
+     * @return {@code true} if the object is simply a Jackson-serializable leaf node or {@code false} otherwise
+     */
+    private static boolean isTerminalValue(@NotNull final Value value) {
+        return value.type().equals(InternalTypeSystem.TYPE_SYSTEM.INTEGER())
+                || value.type().equals(InternalTypeSystem.TYPE_SYSTEM.STRING())
+                || value.type().equals(InternalTypeSystem.TYPE_SYSTEM.BOOLEAN());
+    }
+
+    /**
      * Recursively find all related terms and definitions of a word.
      *
      * @param word  The word to expand
@@ -253,27 +340,6 @@ public class Neo4JServlet {
                 .build();
     }
 
-    /**
-     * Runs a cypher query against Neo4J database and return result as a JSON-serializable.
-     * <p>
-     * Use this method only if the {@code query} does not involve path, because this method cannot handle query result
-     * that has path object nested in it
-     *
-     * @param query  A standard cypher query string
-     *
-     * @return query's native result
-     */
-    private Object executeNonPathQuery(@NotNull final String query) {
-        return executeNativeQuery(query).records()
-                .stream()
-                .map(
-                        record -> record.keys()
-                                .stream()
-                                .map(key -> new AbstractMap.SimpleImmutableEntry<>(key, expand(record.get(key))))
-                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
-                )
-                .collect(Collectors.toList());
-    }
 
     /**
      * Runs a cypher query against Neo4J database and return the query result unmodified.
@@ -293,50 +359,5 @@ public class Neo4JServlet {
                     .withConfig(QueryConfig.builder().withDatabase(NEO4J_DATABASE).build())
                     .execute();
         }
-    }
-
-    /**
-     * Transforms a Neo4J {@link Value} object into a Jackson-serializable Java object.
-     *
-     * See https://neo4j.com/docs/java-manual/current/data-types/ for more details
-     *
-     * @param value  An object graph. Cannot be {@code null}
-     *
-     * @return a {@link Map} representation of the object graph and can be Jackson-serialized
-     */
-    private static Object expand(@NotNull final Value value) {
-        if (isTerminalValue(value)) {
-            if (value.type().equals(InternalTypeSystem.TYPE_SYSTEM.INTEGER())) {
-                return value.asInt();
-            } else if (value.type().equals(InternalTypeSystem.TYPE_SYSTEM.BOOLEAN())) {
-                return value.asBoolean();
-            } else {
-                return value.asString();
-            }
-        }
-
-        return StreamSupport.stream(value.keys().spliterator(), false)
-                .map(key -> new AbstractMap.SimpleImmutableEntry<>(key, expand(value.get(key))))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    /**
-     * Returns whether or not a {@link Value} object is the "leaf" node in Jackson serialization.
-     * <p>
-     * A "leaf" node is defined to be one of
-     * <ul>
-     *     <li> integer
-     *     <li> string
-     *     <li> boolean
-     * </ul>
-     *
-     * @param value  An object graph. Cannot be {@code null}
-     *
-     * @return {@code true} if the object is simply a Jackson-serializable leaf node or {@code false} otherwise
-     */
-    private static boolean isTerminalValue(@NotNull final Value value) {
-        return value.type().equals(InternalTypeSystem.TYPE_SYSTEM.INTEGER())
-                || value.type().equals(InternalTypeSystem.TYPE_SYSTEM.STRING())
-                || value.type().equals(InternalTypeSystem.TYPE_SYSTEM.BOOLEAN());
     }
 }

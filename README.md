@@ -64,6 +64,14 @@ curl -v -i -s -k -X POST https://api.paion-data.dev:8444/services \
 curl -i -k -X POST https://api.paion-data.dev:8444/services/wilhelm-ws-expand/routes \
   --data "paths[]=/wilhelm/expand" \
   --data name=wilhelm-ws-expand
+
+# search
+curl -v -i -s -k -X POST https://api.paion-data.dev:8444/services \
+  --data name=wilhelm-ws-search \
+  --data url="http://${GATEWAY_PUBLIC_IP}:8080/v1/neo4j/search"
+curl -i -k -X POST https://api.paion-data.dev:8444/services/wilhelm-ws-search/routes \
+  --data "paths[]=/wilhelm/search" \
+  --data name=wilhelm-ws-search
 ```
 
 We should see `HTTP/1.1 201 Created` as signs of success.
