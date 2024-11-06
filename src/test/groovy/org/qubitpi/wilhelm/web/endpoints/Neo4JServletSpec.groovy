@@ -22,7 +22,7 @@ import org.neo4j.driver.internal.types.InternalTypeSystem
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DataServletSpec extends Specification {
+class Neo4JServletSpec extends Specification {
 
     @SuppressWarnings('GroovyAccessibility')
     def "Embedded Neo4J Value objects are recursively expanded to become plain JSONable map"() {
@@ -53,7 +53,7 @@ class DataServletSpec extends Specification {
         }
 
         expect:
-        DataServlet.expand(value) == [
+        Neo4JServlet.expand(value) == [
                 term: [
                     name: "Hallo",
                     language: "German"
@@ -73,7 +73,7 @@ class DataServletSpec extends Specification {
         }
 
         expect:
-        DataServlet.isTerminalValue(value) == isTerminalType
+        Neo4JServlet.isTerminalValue(value) == isTerminalType
 
         where:
         valueType                                || isTerminalType

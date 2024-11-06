@@ -23,13 +23,19 @@ import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.QueryConfig;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.internal.types.InternalTypeSystem;
+import org.qubitpi.wilhelm.Graph;
 import org.qubitpi.wilhelm.Language;
 import org.qubitpi.wilhelm.LanguageCheck;
+import org.qubitpi.wilhelm.Link;
+import org.qubitpi.wilhelm.Node;
 import org.qubitpi.wilhelm.config.ApplicationConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -41,12 +47,10 @@ import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -55,36 +59,23 @@ import java.util.stream.StreamSupport;
 @Singleton
 @Immutable
 @ThreadSafe
-@Path("/data")
+@Path("/neo4j")
 @Produces(MediaType.APPLICATION_JSON)
-public class DataServlet {
+public class Neo4JServlet {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Neo4JServlet.class);
     private static final ApplicationConfig APPLICATION_CONFIG = ConfigFactory.create(ApplicationConfig.class);
     private static final String NEO4J_URL = APPLICATION_CONFIG.neo4jUrl();
     private static final String NEO4J_USERNAME = APPLICATION_CONFIG.neo4jUsername();
     private static final String NEO4J_PASSWORD = APPLICATION_CONFIG.neo4jPassword();
     private static final String NEO4J_DATABASE = APPLICATION_CONFIG.neo4jDatabase();
 
-
     /**
      * Constructor for dependency injection.
      */
     @Inject
-    public DataServlet() {
+    public Neo4JServlet() {
         // intentionally left blank
-    }
-
-    /**
-     * A webservice sanity-check endpoint.
-     *
-     * @return 200 OK response
-     */
-    @GET
-    @Path("/healthcheck")
-    public Response healthcheck() {
-        return Response
-                .status(Response.Status.OK)
-                .build();
     }
 
     /**
@@ -158,56 +149,107 @@ public class DataServlet {
     @Produces(MediaType.APPLICATION_JSON)
     @SuppressWarnings("MultipleStringLiterals")
     public Response expand(@NotNull @PathParam("word") final String word) {
+        return expandApoc(word, "3");
+    }
+
+    /**
+     * Recursively find all related terms and definitions of a word using multiple Cypher queries with a plain BFS
+     * algorithm.
+     * <p>
+     * This is good for large sub-graph expand because it breaks huge memory consumption into sub-expand queries. But
+     * this endpoint sends multiple queries to database which incurs roundtrips and large Network I/O
+     *
+     * @param word  The word to expand
+     *
+     * @return a JSON representation of the expanded sub-graph
+     */
+    @GET
+    @Path("/expandDfs/{word}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("MultipleStringLiterals")
+    public Response expandDfs(@NotNull @PathParam("word") final String word) {
+        return Response
+                .status(Response.Status.OK)
+                .entity(expandDfs(word, new HashSet<>()))
+                .build();
+    }
+
+    /**
+     * Recursively find all related terms and definitions of a word using multiple Cypher queries with a plain BFS
+     * algorithm.
+     *
+     * @param label  The word to expand
+     * @param visited  A record that keeps track of visited nodes
+     *
+     * @return the expanded sub-graph
+     */
+    private Graph expandDfs(@NotNull final String label, @NotNull final Set<String> visited) {
+        if (visited.contains(label)) {
+            return Graph.emptyGraph();
+        }
+
+        visited.add(label);
+        final Graph oneHopExpand = (Graph) expandApoc(label, "1").getEntity();
+        final Node wordNode = oneHopExpand.getNodes().stream()
+                .filter(node -> label.equals(node.getLabel()))
+                .findFirst()
+                .orElseThrow(() -> {
+                    final String message = String.format("'%s' was not found in graph %s", label, oneHopExpand);
+                    LOG.error(message);
+                    return new IllegalArgumentException(message);
+                });
+        return oneHopExpand.getUndirectedNeighborsOf(wordNode).stream()
+                .map(neighbor -> expandDfs(neighbor.getLabel(), visited))
+                .reduce(oneHopExpand, Graph::merge);
+    }
+
+    /**
+     * Recursively find all related terms and definitions of a word using a single Cypher query with apoc extension.
+     * <p>
+     * This is bad for large sub-graph expand because it will exhaust memories allocated for the query in database. This
+     * is good for small-subgraph expand when WS and database are far away from each other.
+     *
+     * @param word  The word to expand
+     * @param maxHops  The max length of expanded path. Use "-1" for unlimitedly long path.
+     *
+     * @return a JSON representation of the expanded sub-graph. The format of the JSON would be
+     */
+    @GET
+    @Path("/expandApoc/{word}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("MultipleStringLiterals")
+    public Response expandApoc(
+            @NotNull @PathParam("word") final String word,
+            @NotNull @QueryParam("maxHops") @DefaultValue("-1") final String maxHops
+    ) {
+        LOG.info("apoc expanding '{}' with max hops of {}", word, maxHops);
+
         final String query = String.format(
                 """
-                        MATCH (term:Term{name:'%s'})
-                        CALL apoc.path.expand(term, "RELATED|DEFINITION", null, 1, -1)
+                        MATCH (node{name:'%s'})
+                        CALL apoc.path.expand(node, "LINK", null, 1, %s)
                         YIELD path
                         RETURN path, length(path) AS hops
                         ORDER BY hops;
                 """,
-                word
+                word.replace("'", "\\'"), maxHops
         );
 
         final EagerResult result = executeNativeQuery(query);
 
-        final Map<String, List<Map<String, Object>>> responseBody = Map.of(
-                "nodes", new ArrayList<>(),
-                "links", new ArrayList<>()
-        );
+        final Set<Node> nodes = new HashSet<>();
+        final Set<Link> links = new HashSet<>();
 
         result.records().stream()
                 .map(record -> record.get("path").asPath())
                 .forEach(path -> {
-                    path.nodes().forEach(node -> responseBody.get("nodes").add(
-                            Stream.of(
-                                    node.asMap(),
-                                    Collections.singletonMap("id", node.elementId())
-                            )
-                                    .flatMap(map -> map.entrySet().stream())
-                                    .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue))
-                    ));
-                    path.relationships().forEach(relationship -> responseBody.get("links").add(
-                            Stream.of(
-                                    relationship.asMap(),
-                                    Collections.singletonMap(
-                                            "sourceNodeId",
-                                            relationship.startNodeElementId()
-                                    ),
-                                    Collections.singletonMap(
-                                            "targetNodeId",
-                                            relationship.endNodeElementId()
-                                    )
-                            )
-                                    .flatMap(map -> map.entrySet().stream())
-                                    .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue))
-                    ));
+                    path.nodes().forEach(node -> nodes.add(Node.valueOf(node)));
+                    path.relationships().forEach(relationship -> links.add(Link.valueOf(relationship)));
                 });
-
 
         return Response
                 .status(Response.Status.OK)
-                .entity(responseBody)
+                .entity(new Graph(nodes, links))
                 .build();
     }
 
@@ -239,6 +281,8 @@ public class DataServlet {
      * @param query  A standard cypher query string
      *
      * @return query's native result
+     *
+     * @throws IllegalStateException if a query execution error occurs
      */
     @NotNull
     private EagerResult executeNativeQuery(@NotNull final String query) {

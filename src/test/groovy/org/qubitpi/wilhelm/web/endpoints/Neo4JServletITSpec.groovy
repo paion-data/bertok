@@ -46,7 +46,7 @@ import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 @Testcontainers
-class DataServletITSpec extends Specification {
+class Neo4JServletITSpec extends Specification {
 
     static final int PORT = 8080
 
@@ -86,15 +86,6 @@ class DataServletITSpec extends Specification {
         server.stop()
     }
 
-    def "Healthchecking endpoints returns 200"() {
-        expect:
-        RestAssured.given()
-                .when()
-                .get("/data/healthcheck")
-                .then()
-                .statusCode(200)
-    }
-
     def "Get count by language returns a list of one map entry, whose key is 'count' and value is the total"() {
         expect:
         RestAssured
@@ -102,7 +93,7 @@ class DataServletITSpec extends Specification {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .when()
-                .get("/data/languages/german/count")
+                .get("/neo4j/languages/german/count")
                 .then()
                 .statusCode(200)
                 .body("[0].count", greaterThan(1))
@@ -116,7 +107,7 @@ class DataServletITSpec extends Specification {
                 .accept(MediaType.APPLICATION_JSON)
                 .queryParams([perPage: "10", page: "1"])
                 .when()
-                .get("/data/languages/german")
+                .get("/neo4j/languages/german")
                 .then()
                 .statusCode(200)
                 .body("[0]", hasKey("term"))
@@ -131,15 +122,15 @@ class DataServletITSpec extends Specification {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .when()
-                .get("/data/languages/myInvalidLanguage")
+                .get("/neo4j/languages/myInvalidLanguage")
                 .then()
                 .statusCode(400)
                 .body(equalTo("'myInvalidLanguage' is not a recognized language. Acceptable ones are german, ancientGreek, latin"))
 
         where:
         _ | endpoint
-        _ | "/data/languages/myInvalidLanguage"
-        _ | "/data/languages/myInvalidLanguage/count"
+        _ | "/neo4j/languages/myInvalidLanguage"
+        _ | "/neo4j/languages/myInvalidLanguage/count"
     }
 
     def "Expand a word returns a map of two keys - 'nodes' & 'links'"() {
@@ -149,7 +140,7 @@ class DataServletITSpec extends Specification {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .when()
-                .get("/data/expand/nämlich")
+                .get("/neo4j/expand/nämlich")
                 .then()
                 .statusCode(200)
                 .body("", hasKey("nodes"))

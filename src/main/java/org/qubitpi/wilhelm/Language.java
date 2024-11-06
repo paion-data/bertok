@@ -20,6 +20,7 @@ import net.jcip.annotations.Immutable;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -59,7 +60,7 @@ public enum Language {
     }
 
     /**
-     * Constructs a {@link Language} from its client-side name.
+     * Constructs a {@link Language} from its {@link #getDatabaseName() database name}.
      *
      * @param language  The client-side requested language name
      *
@@ -67,17 +68,53 @@ public enum Language {
      *
      * @throws IllegalArgumentException if the language name is not a valid one
      */
+    @NotNull
+    public static Language ofDatabaseName(@NotNull final String language) {
+        return valueOf(language, Language::getDatabaseName);
+    }
+
+    /**
+     * Constructs a {@link Language} from its {@link #getPathName() client-side name}.
+     *
+     * @param language  The client-side requested language name
+     *
+     * @return a new instance
+     *
+     * @throws IllegalArgumentException if the language name is not a valid one
+     */
+    @NotNull
     public static Language ofClientValue(@NotNull final String language) throws IllegalArgumentException {
+        return valueOf(language, Language::getPathName);
+    }
+
+    /**
+     * Converts a string value to a {@link Language} object.
+     * <p>
+     * The string value must match one of the {@link #getDatabaseName() database name} or
+     * {@link #getPathName() client API name}.
+     *
+     * @param language  A string whose value is equal to either {@link #getDatabaseName() database name} or
+     * {@link #getPathName() client API name}
+     * @param nameExtractor  If {@code language} matches {@link #getDatabaseName()}, use {@link #getDatabaseName()};
+     * otherwise use {@link #getPathName()}
+     *
+     * @return a new instance
+     *
+     * @throws IllegalArgumentException if the language name is not a valid one
+     */
+    private static Language valueOf(@NotNull final String language, final Function<Language, String> nameExtractor) {
         return Arrays.stream(values())
-                .filter(value -> value.pathName.equals(language))
+                .filter(value -> nameExtractor.apply(value).equals(language))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
                         String.format(
                                 "'%s' is not a recognized language. Acceptable ones are %s",
                                 language,
-                                Arrays.stream(values()).map(Language::getPathName).collect(Collectors.joining(", ")
-                                )
-                        )));
+                                Arrays.stream(values())
+                                        .map(nameExtractor)
+                                        .collect(Collectors.joining(", "))
+                        )
+                ));
     }
 
     @NotNull
@@ -88,5 +125,10 @@ public enum Language {
     @NotNull
     public String getDatabaseName() {
         return databaseName;
+    }
+
+    @Override
+    public String toString() {
+        return getDatabaseName();
     }
 }
