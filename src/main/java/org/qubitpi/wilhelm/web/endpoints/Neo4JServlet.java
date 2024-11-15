@@ -126,9 +126,12 @@ public class Neo4JServlet {
 
         final String query = String.format(
                 "MATCH (t:Term WHERE t.language = '%s')-[r]->(d:Definition) " +
-                "RETURN t.name AS term, d.name AS definition " +
+                "RETURN t.%s AS term, d.%s AS definition " +
                 "SKIP %s LIMIT %s",
-                requestedLanguage.getDatabaseName(), (Integer.parseInt(page) - 1) * Integer.parseInt(perPage), perPage
+                requestedLanguage.getDatabaseName(),
+                Node.LABEL_ATTRIBUTE,
+                Node.LABEL_ATTRIBUTE,
+                (Integer.parseInt(page) - 1) * Integer.parseInt(perPage), perPage
         );
 
         return Response
@@ -142,14 +145,17 @@ public class Neo4JServlet {
      *
      * @param keyword  The provided keyword
      *
-     * @return all nodes whose "name" attribute contains the search keyword
+     * @return all nodes whose {@link Node#LABEL_ATTRIBUTE "label"} attribute contains the search keyword
      */
     @GET
     @Path("/search/{keyword}")
     @Produces(MediaType.APPLICATION_JSON)
     @SuppressWarnings("MultipleStringLiterals")
     public Response search(@NotNull @PathParam("keyword") final String keyword) {
-        final String query = String.format("MATCH (node) WHERE node.name =~ '.*%s.*' RETURN node", keyword);
+        final String query = String.format(
+                "MATCH (node) WHERE node.%s =~ '.*%s.*' RETURN node",
+                Node.LABEL_ATTRIBUTE, keyword
+        );
 
         return Response
                 .status(Response.Status.OK)
@@ -313,12 +319,13 @@ public class Neo4JServlet {
 
         final String query = String.format(
                 """
-                        MATCH (node{name:'%s'})
+                        MATCH (node{%s:'%s'})
                         CALL apoc.path.expand(node, "LINK", null, 1, %s)
                         YIELD path
                         RETURN path, length(path) AS hops
                         ORDER BY hops;
                 """,
+                Node.LABEL_ATTRIBUTE,
                 word.replace("'", "\\'"), maxHops
         );
 

@@ -44,7 +44,7 @@ class NodeSpec extends Specification {
         _ | "attributes"
     }
 
-    def "when a Neo4J node does not contain 'name' property, an error is thrown"() {
+    def "when a Neo4J node does not contain 'label' property, an error is thrown"() {
         when: "a Neo4J node has no properties"
         Node.valueOf(Mock(org.neo4j.driver.types.Node) {asMap() >> [:]})
 
@@ -59,7 +59,7 @@ class NodeSpec extends Specification {
         when: "a happy path Neo4J node is being converted to a transparent node"
         Node actual = Node.valueOf(Mock(org.neo4j.driver.types.Node) {
             asMap() >> [
-                    name: "my node",
+                    label: "my node",
                     color: "blue",
                     size: "medium"
             ]

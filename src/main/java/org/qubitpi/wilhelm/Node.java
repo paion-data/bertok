@@ -45,6 +45,13 @@ import java.util.stream.Collectors;
 @JsonIncludeProperties({ "id", "label", "attributes" })
 public class Node {
 
+    /**
+     * The database node attribute name whose value is used for displaying the node caption on UI.
+     * <p>
+     * For example, for Neo4J database, this would correspond to a node property.
+     */
+    public static final String LABEL_ATTRIBUTE = "label";
+
     private static final Logger LOG = LoggerFactory.getLogger(Node.class);
 
     private final String id;
@@ -82,18 +89,17 @@ public class Node {
      * @throws IllegalStateException if {@code node} is missing a "name" property
      */
     public static Node valueOf(@NotNull final org.neo4j.driver.types.Node node) {
-        final String labelKey = "name";
-        if (!Objects.requireNonNull(node).asMap().containsKey(labelKey)) {
-            LOG.error("Neo4J node does not contain '{}' attribute: {}", labelKey, node.asMap());
+        if (!Objects.requireNonNull(node).asMap().containsKey(LABEL_ATTRIBUTE)) {
+            LOG.error("Neo4J node does not contain '{}' attribute: {}", LABEL_ATTRIBUTE, node.asMap());
             throw new IllegalStateException(
                     "There seems to be a data format mismatch between Wilhelm webservice and Neo4J database. " +
                             "Please file an issue at https://github.com/QubitPi/wilhelm-ws/issues for a fix"
             );
         }
 
-        final String label = node.asMap().get(labelKey).toString();
+        final String label = node.asMap().get(LABEL_ATTRIBUTE).toString();
         final Map<String, Object> attributes = node.asMap().entrySet().stream()
-                .filter(entry -> !labelKey.equals(entry.getKey()))
+                .filter(entry -> !LABEL_ATTRIBUTE.equals(entry.getKey()))
                 .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return new Node(node.elementId(), label, attributes);

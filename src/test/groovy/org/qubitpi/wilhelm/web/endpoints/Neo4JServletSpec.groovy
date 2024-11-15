@@ -32,8 +32,8 @@ class Neo4JServletSpec extends Specification {
             keys() >> ["term", "definition"]
             get("term") >> Mock(Value) {
                 type() >> InternalTypeSystem.TYPE_SYSTEM.NODE()
-                keys() >> ["name", "language"]
-                get("name") >> Mock(Value) {
+                keys() >> ["label", "language"]
+                get("label") >> Mock(Value) {
                     type() >> InternalTypeSystem.TYPE_SYSTEM.STRING()
                     asString() >> "Hallo"
                 }
@@ -44,8 +44,8 @@ class Neo4JServletSpec extends Specification {
             }
             get("definition") >> Mock(Value) {
                 type() >> InternalTypeSystem.TYPE_SYSTEM.NODE()
-                keys() >> ["name"]
-                get("name") >> Mock(Value) {
+                keys() >> ["label"]
+                get("label") >> Mock(Value) {
                     type() >> InternalTypeSystem.TYPE_SYSTEM.STRING()
                     asString() >> "Hello"
                 }
@@ -55,11 +55,11 @@ class Neo4JServletSpec extends Specification {
         expect:
         Neo4JServlet.expand(value) == [
                 term: [
-                    name: "Hallo",
+                    label: "Hallo",
                     language: "German"
                 ],
                 definition: [
-                    name: "Hello"
+                    label: "Hello"
                 ]
         ]
     }

@@ -140,7 +140,7 @@ class Neo4JServletITSpec extends Specification {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .when()
-                .get("/neo4j/expand/nämlich")
+                .get("/neo4j/expand/dreißig")
                 .then()
                 .statusCode(200)
                 .body("", hasKey("nodes"))

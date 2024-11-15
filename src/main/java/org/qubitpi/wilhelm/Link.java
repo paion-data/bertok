@@ -47,6 +47,13 @@ import java.util.stream.Collectors;
 @JsonIncludeProperties({ "label", "sourceNodeId", "targetNodeId", "attributes" })
 public class Link {
 
+    /**
+     * The database node attribute name whose value is used for displaying the relationship caption on UI.
+     * <p>
+     * For example, for Neo4J database, this would correspond to a relationship property.
+     */
+    public static final String LABEL_ATTRIBUTE = "label";
+
     private static final Logger LOG = LoggerFactory.getLogger(Link.class);
 
     private final String label;
@@ -93,18 +100,17 @@ public class Link {
      * @throws IllegalStateException if {@code relationship} is missing a "name" property
      */
     public static Link valueOf(final Relationship relationship) {
-        final String labelKey = "name";
-        if (!Objects.requireNonNull(relationship).asMap().containsKey(labelKey)) {
-            LOG.error("Neo4J relationship does not contain '{}' attribute: {}", labelKey, relationship.asMap());
+        if (!Objects.requireNonNull(relationship).asMap().containsKey(LABEL_ATTRIBUTE)) {
+            LOG.error("Neo4J relationship does not contain '{}' attribute: {}", LABEL_ATTRIBUTE, relationship.asMap());
             throw new IllegalStateException(
                     "There seems to be a data format mismatch between Wilhelm webservice and Neo4J database. " +
                             "Please file an issue at https://github.com/QubitPi/wilhelm-ws/issues for a fix"
             );
         }
 
-        final String label = relationship.asMap().get(labelKey).toString();
+        final String label = relationship.asMap().get(LABEL_ATTRIBUTE).toString();
         final Map<String, Object> attributes = relationship.asMap().entrySet().stream()
-                .filter(entry -> !labelKey.equals(entry.getKey()))
+                .filter(entry -> !LABEL_ATTRIBUTE.equals(entry.getKey()))
                 .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return new Link(label, relationship.startNodeElementId(), relationship.endNodeElementId(), attributes);

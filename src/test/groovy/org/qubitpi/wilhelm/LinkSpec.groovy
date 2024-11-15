@@ -47,7 +47,7 @@ class LinkSpec extends Specification {
         _ | "attributes"
     }
 
-    def "when a Neo4J relationship does not contain 'name' property, an error is thrown"() {
+    def "when a Neo4J relationship does not contain 'label' property, an error is thrown"() {
         when: "a Neo4J node has no properties"
         Link.valueOf(Mock(Relationship) {asMap() >> [:]})
 
@@ -62,7 +62,7 @@ class LinkSpec extends Specification {
         when: "a happy path Neo4J relationship is being converted to a transparent link"
         Link actual = Link.valueOf(Mock(Relationship) {
             asMap() >> [
-                    name: "my node",
+                    label: "my node",
                     type: "follows"
             ]
             startNodeElementId() >> "node1"

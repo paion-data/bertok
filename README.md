@@ -81,6 +81,7 @@ We should see `HTTP/1.1 201 Created` as signs of success.
 - vocabulary count: https://api.paion-data.dev/wilhelm/languages/german?perPage=100&page=1
 - query vocabulary paged: https://api.paion-data.dev/wilhelm/languages/german/count
 - expand: https://api.paion-data.dev/wilhelm/expand/nämlich
+- search: https://api.paion-data.dev/wilhelm/search/das
 
 License
 -------
