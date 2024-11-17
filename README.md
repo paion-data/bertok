@@ -47,7 +47,7 @@ dashboard.
 ### Gateway Registration
 
 ```bash
-export GATEWAY_PUBLIC_IP=52.53.186.26
+export GATEWAY_PUBLIC_IP=<gateway IP>
 
 # vocabulary paged & count
 curl -v -i -s -k -X POST https://api.paion-data.dev:8444/services \
