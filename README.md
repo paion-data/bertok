@@ -36,8 +36,7 @@ mvn clean verify
 Deployment
 ----------
 
-This is a one-person project. Agility outplays team scaling, so deployment is manual and pretty much follows
-[jetty-start.sh](./jetty-start.sh)
+At this moment deployment is manual and pretty much follows [jetty-start.sh](./jetty-start.sh)
 
 ### Sending Logs to ELK Cloud
 
@@ -76,7 +75,7 @@ curl -i -k -X POST https://api.paion-data.dev:8444/services/wilhelm-ws-search/ro
 
 We should see `HTTP/1.1 201 Created` as signs of success.
 
-#### Example requests:
+#### Example requests
 
 - vocabulary count: https://api.paion-data.dev/wilhelm/languages/german?perPage=100&page=1
 - query vocabulary paged: https://api.paion-data.dev/wilhelm/languages/german/count

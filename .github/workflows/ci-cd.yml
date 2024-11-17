@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-name: Template CI/CD
+name: CI/CD
 
 "on":
   pull_request:
@@ -27,17 +27,48 @@ env:
   EMAIL: jack20220723@gmail.com
 
 jobs:
-  yml-md-style-and-link-checks:
-    uses: QubitPi/hashistack/.github/workflows/yml-md-style-and-link-checks.yml@master
+  cancel-previous:
+    name: Cancel Previous Runs In Order to Allocate Action Resources Immediately for Current Run
+    if: github.ref != 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel previous
+        uses: styfle/cancel-workflow-action@0.10.1
+        with:
+          access_token: ${{ github.token }}
 
-  tests:
-    name: Unit & Integration Tests
-    needs: yml-md-style-and-link-checks
+  yaml-lint:
+    name: YAML Style Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Test environment setup
-        uses: ./.github/actions/ci-setup
+      - uses: actionshub/yamllint@main
+
+  markdown-lint:
+    name: Markdown Style Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actionshub/markdownlint@main
+
+  linkChecker:
+    name: Link Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Link Checker
+        uses: lycheeverse/lychee-action@v1.9.0
+        with:
+          fail: true
+
+  tests:
+    name: Unit & Integration Tests
+    needs: [yaml-lint, markdown-lint, linkChecker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: QubitPi/jersey-webservice-deployment-actions/.github/actions/jdk-setup@master
       - name: Set up Docker for Integration Tests
         uses: docker-practice/actions-setup-docker@master
       - name: Run unit & integration tests
