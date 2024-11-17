@@ -347,7 +347,6 @@ public class Neo4JServlet {
                 .build();
     }
 
-
     /**
      * Runs a cypher query against Neo4J database and return the query result unmodified.
      *
