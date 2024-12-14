@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * Endpoint that contains a basic sanity-check.
+ * All endpoints against Neo4J database.
  */
 @Singleton
 @Immutable
