@@ -74,3 +74,38 @@ jobs:
           distribution: ${{ env.JDK_DISTRIBUTION }}
       - name: Run unit & integration tests
         run: mvn -B clean verify
+
+  deploy-docs:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Set up JDK ${{ env.JDK_VERSION }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JDK_VERSION }}
+          distribution: ${{ env.JDK_DISTRIBUTION }}
+      - name: Install Dependencies
+        working-directory: docs
+        run: yarn
+      - name: Build Documentation
+        working-directory: docs
+        run: yarn build
+      - name: Generate Javadoc
+        run: mvn -B clean javadoc:javadoc
+      - name: Move Javadoc into documentation directory
+        if: github.ref == 'refs/heads/master'
+        run: mv target/site/apidocs/ docs/build/apidocs/
+      - name: Load CNAME file
+        if: github.ref == 'refs/heads/master'
+        run: cp docs/CNAME docs/build
+      - name: Deploy Documentation (including Javadoc) to GitHub Pages
+        if: github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build
+          enable_jekyll: false
+          user_name: ${{ env.USER }}
+          user_email: ${{ env.EMAIL }}
