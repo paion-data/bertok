@@ -19,15 +19,15 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Aristotle',
+  title: 'Bertok',
   tagline: 'Webservice with first-class support for Graph Database',
   favicon: 'img/favicon.ico',
 
-  url: 'https://aristotle-ws.com',
+  url: 'https://bertok.wilhelmlang.com',
   baseUrl: '/',
 
-  organizationName: 'paion-data',
-  projectName: 'aristotle',
+  organizationName: 'QubitPi',
+  projectName: 'bertok',
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
@@ -39,7 +39,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl:
-              'https://github.com/paion-data/aristotle/tree/master/docs',
+              'https://github.com/QubitPi/bertok/tree/master/docs',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -52,9 +52,9 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
-      title: 'Aristotle',
+      title: 'Bertok',
       logo: {
-        alt: 'Aristotle Logo',
+        alt: 'Bertok Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -69,12 +69,12 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: "https://aristotle-ws.com/apidocs",
+          href: "https://bertok.wilhelmlang.com/apidocs",
           label: "API",
           position: "left",
         },
         {
-          href: 'https://github.com/paion-data/aristotle',
+          href: 'https://github.com/QubitPi/bertok',
           label: ' ',
           position: 'right',
           className: 'header-icon-link header-github-link',
@@ -98,7 +98,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/paion-data/aristotle',
+              href: 'https://github.com/QubitPi/bertok',
             },
           ],
         },

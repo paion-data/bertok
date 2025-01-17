@@ -32,7 +32,7 @@ function HomepageHeader() {
 
         <div className="container">
           <h1 className="hero__title">
-            <img src="img/logo.svg" alt="Aristotle Logo" width={200}/>
+            <img src="img/logo.svg" alt="Bertok Logo" width={200}/>
           </h1>
           <p className="hero__subtitle" style={{ color: "white" }}>
             Webservice with first-class support for <b><em>Graph Database</em></b>
@@ -49,10 +49,10 @@ function HomepageHeader() {
                 style={{marginLeft: '10px'}}
             >
               <a
-                  href="https://github.com/paion-data/aristotle"
+                  href="https://github.com/QubitPi/bertok"
                   rel="noopener"
                   target="_blank"
-                  aria-label="Star paion-data/aristotle on GitHub"
+                  aria-label="Star QubitPi/bertok on GitHub"
                   style={{
                     textDecoration: 'none',
                     color: 'inherit',

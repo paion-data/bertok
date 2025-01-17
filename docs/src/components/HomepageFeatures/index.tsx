@@ -56,7 +56,7 @@ const FeatureList: FeatureItem[] = [
     id: 'not-used',
     description: (
         <>
-          Astraios is 100% open source and available on <a href="https://github.com/paion-data/aristotle">Github</a>.
+          Astraios is 100% open source and available on <a href="https://github.com/QubitPi/bertok">Github</a>.
           Released
           under the commercial-friendly
           <a href="http://www.apache.org/licenses/LICENSE-2.0.html"> Apache License, Version 2.0.</a>
