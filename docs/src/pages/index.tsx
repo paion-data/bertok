@@ -49,10 +49,10 @@ function HomepageHeader() {
                 style={{marginLeft: '10px'}}
             >
               <a
-                  href="https://github.com/QubitPi/bertok"
+                  href="https://github.com/com.paion-data/bertok"
                   rel="noopener"
                   target="_blank"
-                  aria-label="Star QubitPi/bertok on GitHub"
+                  aria-label="Star paion-data/bertok on GitHub"
                   style={{
                     textDecoration: 'none',
                     color: 'inherit',

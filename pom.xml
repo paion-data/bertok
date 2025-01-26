@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.qubitpi.wilhelm</groupId>
+    <groupId>com.paion-data.wilhelm</groupId>
     <artifactId>bertok</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>Bertok</name>
-    <description>Serving data from graph database for wilhelm.qubitpi.org</description>
-    <url>https://github.com/QubitPi/bertok</url>
+    <description>Serving data from graph database for wilhelmlang.com</description>
+    <url>https://github.com/paion-data/bertok</url>
 
     <developers>
         <developer>

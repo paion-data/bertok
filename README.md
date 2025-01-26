@@ -4,7 +4,7 @@ Bertok
 ![Java Version Badge][Java Version Badge]
 [![Apache License Badge]][Apache License, Version 2.0]
 
-__Bertok__ is a [JSR 370] [JAX-RS] webservice exclusively serving [wilhelm.qubitpi.org](https://wilhelm.qubitpi.org)
+__Bertok__ is a [JSR 370] [JAX-RS] webservice exclusively serving [wilhelmlang.com](https://wilhelmlang.com)
 
 Development
 -----------
@@ -12,7 +12,7 @@ Development
 ### Getting Source Code
 
 ```console
-git@github.com:QubitPi/bertok.git
+git@github.com:com.paion-data/bertok.git
 cd bertok
 ```
 
@@ -53,7 +53,7 @@ Press `Ctr-C` to stop the webservice and delete generated directories if needed 
 ### Deployment
 
 Bertok has a dedicated release definition called
-[bertok-release-definition](https://github.com/QubitPi/bertok-release-definition) for its automated deployment.
+[bertok-release-definition](https://github.com/paion-data/bertok-release-definition) for its automated deployment.
 Please check that our for details.
 
 License
