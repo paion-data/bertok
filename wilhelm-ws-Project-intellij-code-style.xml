@@ -9,7 +9,7 @@
       <emptyLine />
       <package name="" withSubpackages="true" static="true" />
       <emptyLine />
-      <package name="org.qubitpi.wilhelm" withSubpackages="true" static="false" />
+      <package name="com.paion-data.wilhelm" withSubpackages="true" static="false" />
       <emptyLine />
       <package name="com" withSubpackages="true" static="false" />
       <emptyLine />
@@ -38,7 +38,7 @@
         <emptyLine />
         <package name="" withSubpackages="true" static="true" />
         <emptyLine />
-        <package name="org.qubitpi.wilhelm" withSubpackages="true" static="false" />
+        <package name="com.paion-data.wilhelm" withSubpackages="true" static="false" />
         <emptyLine />
         <package name="com" withSubpackages="true" static="false" />
         <emptyLine />

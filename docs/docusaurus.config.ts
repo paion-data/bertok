@@ -23,10 +23,10 @@ const config: Config = {
   tagline: 'Webservice with first-class support for Graph Database',
   favicon: 'img/favicon.ico',
 
-  url: 'https://bertok.qubitpi.org',
+  url: 'https://bertok.wilhelmlang.com',
   baseUrl: '/',
 
-  organizationName: 'QubitPi',
+  organizationName: 'paion-data',
   projectName: 'bertok',
 
   onBrokenLinks: 'warn',
@@ -39,7 +39,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl:
-              'https://github.com/QubitPi/bertok/tree/master/docs',
+              'https://github.com/paion-data/bertok/tree/master/docs',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -69,12 +69,12 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: "https://bertok.qubitpi.org/apidocs",
+          href: "https://bertok.wilhelmlang.com/apidocs",
           label: "API",
           position: "left",
         },
         {
-          href: 'https://github.com/QubitPi/bertok',
+          href: 'https://github.com/paion-data/bertok',
           label: ' ',
           position: 'right',
           className: 'header-icon-link header-github-link',
@@ -98,7 +98,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/QubitPi/bertok',
+              href: 'https://github.com/paion-data/bertok',
             },
           ],
         },
