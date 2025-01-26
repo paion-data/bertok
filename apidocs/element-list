@@ -1,5 +1,5 @@
-org.qubitpi.wilhelm
-org.qubitpi.wilhelm.application
-org.qubitpi.wilhelm.config
-org.qubitpi.wilhelm.web.endpoints
-org.qubitpi.wilhelm.web.filters
+com.paiondata.wilhelm
+com.paiondata.wilhelm.application
+com.paiondata.wilhelm.config
+com.paiondata.wilhelm.web.endpoints
+com.paiondata.wilhelm.web.filters

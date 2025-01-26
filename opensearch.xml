@@ -4,8 +4,8 @@
   <ShortName>Bertok</ShortName>
   <Description>Search Bertok</Description>
   <InputEncoding>UTF-8</InputEncoding>
-  <Image width="16" height="16" type="image/x-icon">https://bertok.qubitpi.org/img/favicon.ico</Image>
-  <Url type="text/html" method="get" template="https://bertok.qubitpi.org/search?q={searchTerms}"/>
-  <Url type="application/opensearchdescription+xml" rel="self" template="https://bertok.qubitpi.org/opensearch.xml" />
-  <moz:SearchForm>https://bertok.qubitpi.org/</moz:SearchForm>
+  <Image width="16" height="16" type="image/x-icon">https://bertok.wilhelmlang.com/img/favicon.ico</Image>
+  <Url type="text/html" method="get" template="https://bertok.wilhelmlang.com/search?q={searchTerms}"/>
+  <Url type="application/opensearchdescription+xml" rel="self" template="https://bertok.wilhelmlang.com/opensearch.xml" />
+  <moz:SearchForm>https://bertok.wilhelmlang.com/</moz:SearchForm>
 </OpenSearchDescription>

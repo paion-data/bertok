@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.qubitpi.wilhelm"},{"l":"org.qubitpi.wilhelm.application"},{"l":"org.qubitpi.wilhelm.config"},{"l":"org.qubitpi.wilhelm.web.endpoints"},{"l":"org.qubitpi.wilhelm.web.filters"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.paiondata.wilhelm"},{"l":"com.paiondata.wilhelm.application"},{"l":"com.paiondata.wilhelm.config"},{"l":"com.paiondata.wilhelm.web.endpoints"},{"l":"com.paiondata.wilhelm.web.filters"}];updateSearchResults();
