@@ -1,10 +1,10 @@
-Wilhelm Webservice
-==================
+Bertok
+======
 
 ![Java Version Badge][Java Version Badge]
 [![Apache License Badge]][Apache License, Version 2.0]
 
-__wilhelm-ws__ is a [JSR 370] [JAX-RS] webservice exclusively serving [wilhelmlang.com](https://wilhelmlang.com/)
+__Bertok__ is a [JSR 370] [JAX-RS] webservice exclusively serving [wilhelm.qubitpi.org](https://wilhelm.qubitpi.org)
 
 Development
 -----------
@@ -12,8 +12,8 @@ Development
 ### Getting Source Code
 
 ```console
-git@github.com:QubitPi/wilhelm-ws.git
-cd wilhelm-ws
+git@github.com:QubitPi/bertok.git
+cd bertok
 ```
 
 #### Running Tests
@@ -24,7 +24,7 @@ mvn clean verify
 
 ### Generating WAR file
 
-wilhelm-ws favors running in an external Jetty container, so its executable is not a fat JAR but a WAR which can be
+Bertok favors running in an external Jetty container, so its executable is not a fat JAR but a WAR which can be
 compiled up with
 
 ```console
@@ -52,14 +52,14 @@ Press `Ctr-C` to stop the webservice and delete generated directories if needed 
 
 ### Deployment
 
-wilhelm-ws has a dedicated release definition called
-[wilhelm-ws-release-definition](https://github.com/QubitPi/wilhelm-ws-release-definition) for its automated deployment.
+Bertok has a dedicated release definition called
+[bertok-release-definition](https://github.com/QubitPi/bertok-release-definition) for its automated deployment.
 Please check that our for details.
 
 License
 -------
 
-The use and distribution terms for [wilhelm-ws]() are covered by the [Apache License, Version 2.0].
+The use and distribution terms for [bertok]() are covered by the [Apache License, Version 2.0].
 
 [Apache License Badge]: https://img.shields.io/badge/Apache%202.0-F25910.svg?style=for-the-badge&logo=Apache&logoColor=white
 [Apache License, Version 2.0]: https://www.apache.org/licenses/LICENSE-2.0

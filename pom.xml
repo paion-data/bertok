@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.qubitpi.wilhelm</groupId>
-    <artifactId>wilhelm-ws</artifactId>
+    <artifactId>bertok</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>Wilhelm Webservice</name>
-    <description>Serving data from graph database for wilhelmlang.com</description>
-    <url>https://github.com/QubitPi/wilhelm-ws</url>
+    <name>Bertok</name>
+    <description>Serving data from graph database for wilhelm.qubitpi.org</description>
+    <url>https://github.com/QubitPi/bertok</url>
 
     <developers>
         <developer>

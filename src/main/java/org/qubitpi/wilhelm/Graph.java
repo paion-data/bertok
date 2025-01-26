@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A JSON-serializable object representation of a knowledge graph in wilhelm-ws.
+ * A JSON-serializable object representation of a knowledge graph in bertok.
  */
 @Immutable
 @ThreadSafe

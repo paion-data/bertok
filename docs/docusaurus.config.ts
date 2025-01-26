@@ -23,7 +23,7 @@ const config: Config = {
   tagline: 'Webservice with first-class support for Graph Database',
   favicon: 'img/favicon.ico',
 
-  url: 'https://bertok.wilhelmlang.com',
+  url: 'https://bertok.qubitpi.org',
   baseUrl: '/',
 
   organizationName: 'QubitPi',
@@ -69,7 +69,7 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: "https://bertok.wilhelmlang.com/apidocs",
+          href: "https://bertok.qubitpi.org/apidocs",
           label: "API",
           position: "left",
         },

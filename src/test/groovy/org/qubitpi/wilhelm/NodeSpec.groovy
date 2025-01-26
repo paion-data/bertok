@@ -52,10 +52,10 @@ class NodeSpec extends Specification {
         Exception exception = thrown()
         exception instanceof IllegalStateException
         exception.message == "There seems to be a data format mismatch between Wilhelm webservice and Neo4J database. " +
-                "Please file an issue at https://github.com/QubitPi/wilhelm-ws/issues for a fix"
+                "Please file an issue at https://github.com/QubitPi/bertok/issues for a fix"
     }
 
-    def "Neo4J node gets converted to a wilhelm-ws node"() {
+    def "Neo4J node gets converted to a bertok node"() {
         when: "a happy path Neo4J node is being converted to a transparent node"
         Node actual = Node.valueOf(Mock(org.neo4j.driver.types.Node) {
             asMap() >> [

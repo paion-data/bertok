@@ -55,10 +55,10 @@ class LinkSpec extends Specification {
         Exception exception = thrown()
         exception instanceof IllegalStateException
         exception.message == "There seems to be a data format mismatch between Wilhelm webservice and Neo4J database. " +
-                "Please file an issue at https://github.com/QubitPi/wilhelm-ws/issues for a fix"
+                "Please file an issue at https://github.com/QubitPi/bertok/issues for a fix"
     }
 
-    def "Neo4J relationship gets converted to a wilhelm-ws link"() {
+    def "Neo4J relationship gets converted to a bertok link"() {
         when: "a happy path Neo4J relationship is being converted to a transparent link"
         Link actual = Link.valueOf(Mock(Relationship) {
             asMap() >> [

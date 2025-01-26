@@ -26,5 +26,5 @@ mkdir -p jetty-base
 cd jetty-base
 java -jar $JETTY_HOME/start.jar --add-module=annotations,server,http,deploy,servlet,webapp,resources,jsp
 
-mv ../target/wilhelm-ws-1.0-SNAPSHOT.war webapps/ROOT.war
+mv ../target/bertok-1.0-SNAPSHOT.war webapps/ROOT.war
 java -jar $JETTY_HOME/start.jar
